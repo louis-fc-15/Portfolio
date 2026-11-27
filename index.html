@@ -38,7 +38,7 @@ body.edit #toc .mv{display:inline-flex}
 #toc .mv button:hover{background:var(--bg);color:var(--fg)}
 #newev{margin:12px 10px 0}
 #mode{display:block;margin:0 10px 18px}
-#export{margin:8px 10px 0}
+#export,#savep,#openp{margin:8px 10px 0}
 header{padding:48px 4vw 24px}
 #title{font:900 clamp(40px,8vw,110px)/.92 var(--disp);letter-spacing:-.01em;margin:0;outline:none}
 header.ev #title{font-size:clamp(34px,6vw,84px)}
@@ -220,7 +220,7 @@ button,a,select,.chip{touch-action:manipulation}
   #toc .h{display:none}
   #toc .row{flex:none}
   #toc a{flex:none;white-space:nowrap}
-  #mode,#newev,#export,#settingsbtn{flex:none;margin:0}
+  #mode,#newev,#export,#savep,#openp,#settingsbtn{flex:none;margin:0}
   header{padding:22px 4vw 14px}
   #title{font-size:clamp(30px,11vw,64px)}
   header.ev #title{font-size:clamp(28px,9vw,56px)}
@@ -248,18 +248,35 @@ body.edit .mrow.none{display:block;padding:34px 12px 12px;border:1px dashed var(
 .mrow.none .mlab{left:8px}
 .marq .ctl{z-index:6}
 body.vrac #bar,body.vrac #drop{display:none!important}
+/* ---------- grille libre sur téléphone : les cases se suivent dans l'ordre de lecture ---------- */
+#grid.gmob .ph{--s:1}
+#grid.gmob .ph.wide,#grid.gmob .ph.txt{flex:1 1 calc(100% - var(--gap))!important}
+#grid.gmob .ph.blank,#grid.gmob .rz,#grid.gmob [data-a="up"],#grid.gmob [data-a="down"],#grid.gmob [data-a="left"],#grid.gmob [data-a="right"]{display:none!important}
+#mobhint{display:none;margin:0 0 12px;padding:10px 12px;border:1px solid var(--line);border-radius:8px;background:var(--panel);color:var(--mut);font-size:13px}
+body.edit.gmobon #mobhint{display:block}
+@media(max-width:800px){
+  /* barre d'outils : une seule ligne qui défile au doigt au lieu de 4 lignes de boutons */
+  #bar{flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none;-webkit-overflow-scrolling:touch;padding:8px 4vw;top:52px}
+  #bar::-webkit-scrollbar{display:none}
+  #bar .grp{flex-wrap:nowrap;flex:none}
+  #bar .btn,#bar label{white-space:nowrap}
+  .ctl button,.ctl select{padding:7px 9px;font-size:13px}
+  #lb button{font-size:40px;padding:18px}
+  #settings .row{flex-wrap:wrap;gap:6px 16px}
+  #settings .row input[type=range]{width:100%}
+}
 </style>
 </head>
 <body class="" data-theme="nuit" data-fx="rise">
-<div id="prog"></div>
+<div id="prog" style="transform: scaleX(0);"></div>
 <div id="app">
 
 <nav id="toc" aria-label="Sommaire"></nav>
 
 <div id="page" class="">
-  <header id="head">
-    <h1 id="title" contenteditable="true" data-ph="Ton nom"></h1>
-    <p id="sub" contenteditable="true" data-ph="Photographe de sport. Ajoute ici une courte présentation."></p>
+  <header id="head" class="ev">
+    <h1 id="title" contenteditable="true" data-ph="Nom de l'événement"></h1>
+    <p id="sub" contenteditable="true" data-ph="Date, lieu, résultat…"></p>
   </header>
 
   <div id="bar">
@@ -282,12 +299,13 @@ body.vrac #bar,body.vrac #drop{display:none!important}
     </div>
   </div>
 
-  <div id="cards"></div>
+  <div id="cards" hidden=""></div>
   <div id="filters"></div>
 
   <main>
     <div id="drop">Glisse tes photos, fichiers RAW (.CR2) ou vidéos (.mp4, .mov) ici, ou clique pour les choisir</div>
-    <div id="grid" class="grid" style="--cs: 24.479166666666668px; --cell: 24.479166666666668px; --rows: 44;"></div>
+    <p id="mobhint">Sur téléphone, la « Grille libre » montre les cases les unes après les autres, dans l'ordre de lecture, et masque les espaces vides. Pour placer ou redimensionner les cases, passe sur l'ordinateur.</p>
+    <div id="grid" class="grid" style="--cs: 24.479166666666668px; --cell: 24.479166666666668px; --rows: 221;"></div>
     <p id="empty" hidden="" class=""></p>
   </main>
 </div>
@@ -299,7 +317,7 @@ body.vrac #bar,body.vrac #drop{display:none!important}
     <div class="sph"><h2>Paramètres</h2><button class="btn" id="setx">Fermer</button></div>
     <h3>Apparence</h3>
     <div class="row"><label for="theme">Thème du site</label><select id="theme" class="btn"><optgroup label="Classiques"><option value="clair">Clair</option><option value="sombre">Sombre</option><option value="papier">Papier</option><option value="nuit">Nuit</option><option value="stade">Stade</option><option value="piste">Terre battue</option><option value="ocean">Océan</option><option value="contraste">Contraste</option></optgroup><optgroup label="Fêtes"><option value="halloween">Halloween</option><option value="noel">Noël</option><option value="nouvelan">Nouvel An</option><option value="travail">Fête du travail</option><option value="valentin">Saint-Valentin</option><option value="printemps">Printemps</option><option value="ete">Été</option></optgroup></select></div>
-    <div class="row" id="pthr" style="display: none;"><label for="ptheme">Thème de cette page</label><select id="ptheme" class="btn"><option value="">Comme le site</option><optgroup label="Classiques"><option value="clair">Clair</option><option value="sombre">Sombre</option><option value="papier">Papier</option><option value="nuit">Nuit</option><option value="stade">Stade</option><option value="piste">Terre battue</option><option value="ocean">Océan</option><option value="contraste">Contraste</option></optgroup><optgroup label="Fêtes"><option value="halloween">Halloween</option><option value="noel">Noël</option><option value="nouvelan">Nouvel An</option><option value="travail">Fête du travail</option><option value="valentin">Saint-Valentin</option><option value="printemps">Printemps</option><option value="ete">Été</option></optgroup></select></div>
+    <div class="row" id="pthr" style=""><label for="ptheme">Thème de cette page</label><select id="ptheme" class="btn"><option value="">Comme le site</option><optgroup label="Classiques"><option value="clair">Clair</option><option value="sombre">Sombre</option><option value="papier">Papier</option><option value="nuit">Nuit</option><option value="stade">Stade</option><option value="piste">Terre battue</option><option value="ocean">Océan</option><option value="contraste">Contraste</option></optgroup><optgroup label="Fêtes"><option value="halloween">Halloween</option><option value="noel">Noël</option><option value="nouvelan">Nouvel An</option><option value="travail">Fête du travail</option><option value="valentin">Saint-Valentin</option><option value="printemps">Printemps</option><option value="ete">Été</option></optgroup></select></div>
     <div class="row"><label for="ft">Police des titres</label><select id="ft" class="btn"><option value="arial">Arial</option><option value="georgia">Georgia</option><option value="times">Times New Roman</option><option value="verdana">Verdana</option><option value="courier">Courier New</option><option value="impact">Impact</option></select></div>
     <div class="row"><label for="fb">Police du texte</label><select id="fb" class="btn"><option value="">Par défaut</option><option value="arial">Arial</option><option value="georgia">Georgia</option><option value="times">Times New Roman</option><option value="verdana">Verdana</option><option value="courier">Courier New</option><option value="impact">Impact</option></select></div>
     <h3>Disposition de la page</h3>
@@ -333,6 +351,7 @@ body.vrac #bar,body.vrac #drop{display:none!important}
   </div>
 </div>
 
+<input type="file" id="projfile" hidden="">
 <input type="file" id="file" accept="image/*,video/*,.cr2,.cr3,.nef,.arw,.dng,.mov,.mp4" multiple="" hidden="">
 <div id="lb" class=""><button id="lbx" aria-label="Fermer">×</button><button id="lbp" aria-label="Précédente">‹</button><img alt=""><video id="lbv" controls="" playsinline=""></video><button id="lbn" aria-label="Suivante">›</button></div>
 
@@ -367,7 +386,11 @@ body.vrac #bar,body.vrac #drop{display:none!important}
   const curEv=()=>S.events.find(e=>e.id===page);
   const isVrac=()=>{ const e=curEv(); return !!(e&&e.auto); };
   // disposition effective : la page « Toutes les photos » n'a pas de Grille libre (les cases y sont automatiques)
-  const lay=()=>isVrac()&&S.layout==='grid'?'cols':S.layout;
+  // sur un écran étroit, la Grille libre (48 colonnes) deviendrait minuscule : on l'affiche en lignes, dans l'ordre de lecture,
+  // sans rien modifier aux positions enregistrées (elles restent intactes pour l'ordinateur)
+  const narrow=()=>window.innerWidth<700;
+  const gmob=()=>S.layout==='grid'&&!isVrac()&&narrow();
+  const lay=()=>{ const L=isVrac()&&S.layout==='grid'?'cols':S.layout; return L==='grid'&&narrow()?'rows':L; };
   const NOTMEDIA=['text','blank','show','marq'];
 
   // ---------- photos de tout le site, sans doublons ----------
@@ -425,13 +448,15 @@ body.vrac #bar,body.vrac #drop{display:none!important}
         '<span class="mv"><button data-m="up" data-i="'+i+'" title="Monter">↑</button><button data-m="down" data-i="'+i+'" title="Descendre">↓</button><button data-m="del" data-i="'+i+'" title="Supprimer l\'événement">✕</button></span></div>';
     });
     h+='<button class="btn edit-only" id="newev">Nouvel événement</button>';
-    if(!ST) h+='<button class="btn edit-only" id="export">Exporter le site</button><button class="btn edit-only" id="settingsbtn">Paramètres</button>';
+    if(!ST) h+='<button class="btn edit-only" id="export">Exporter le site</button><button class="btn edit-only" id="savep" title="Un seul fichier avec toutes tes photos et ta mise en page, à rouvrir sur un autre appareil">Sauvegarder le projet</button><button class="btn edit-only" id="openp" title="Rouvrir un projet sauvegardé (sur PC ou téléphone)">Ouvrir un projet</button><button class="btn edit-only" id="settingsbtn">Paramètres</button>';
     $('#toc').innerHTML=h;
   }
   $('#toc').addEventListener('click',e=>{
     const b=e.target.closest('button'); if(!b) return;
     if(b.id==='mode'){ S.edit=!S.edit; saveS(); applyS(); render(); return; }
     if(b.id==='export'){ exportSite(b); return; }
+    if(b.id==='savep'){ saveProject(b); return; }
+    if(b.id==='openp'){ $('#projfile').click(); return; }
     if(b.id==='settingsbtn'){ $('#settings').classList.add('open'); return; }
     if(b.id==='newev'){
       const n=prompt("Nom de l'événement :"); if(!n||!n.trim()) return;
@@ -457,7 +482,7 @@ body.vrac #bar,body.vrac #drop{display:none!important}
     $('#ptheme').value=(ev&&ev.theme)||'';
     $('#pthr').style.display=ev?'':'none';
   }
-  function gridCls(){ const L=lay(); grid.classList.toggle('rows',L==='rows'); grid.classList.toggle('cols',L==='cols'); grid.classList.toggle('grid',L==='grid'); }
+  function gridCls(){ const L=lay(), m=gmob(); grid.classList.toggle('gmob',m); body.classList.toggle('gmobon',m); grid.classList.toggle('rows',L==='rows'); grid.classList.toggle('cols',L==='cols'); grid.classList.toggle('grid',L==='grid'); }
   function applyS(){
     const r=document.documentElement.style;
     r.setProperty('--cols',colsEff()); r.setProperty('--gap',S.gap+'px'); r.setProperty('--row',S.row+'px');
@@ -539,7 +564,18 @@ body.vrac #bar,body.vrac #drop{display:none!important}
   const canPlace=(id,x,y,w,h)=>x>=0&&y>=0&&x+w<=48&&Object.keys(cells).every(k=>k===id||rectsFree(cells[k],x,y,w,h));
   function layoutGrid(){
     const tiles=[...grid.querySelectorAll('.ph')];
-    if(lay()!=='grid'){ tiles.forEach(d=>{ d.style.gridColumn=''; d.style.gridRow=''; }); return; }
+    if(lay()!=='grid'){
+      tiles.forEach(d=>{ d.style.gridColumn=''; d.style.gridRow=''; d.style.order=''; d.style.alignSelf=''; d.style.aspectRatio=''; d.classList.remove('wide'); });
+      if(gmob()){
+        const key=d=>{ const p=find(d.dataset.id)||{}; return [Number.isInteger(p.gy)?p.gy:1e6, Number.isInteger(p.gx)?p.gx:0, p.order||0]; };
+        tiles.map(d=>[d,key(d)]).sort((a,b)=>a[1][0]-b[1][0]||a[1][1]-b[1][1]||a[1][2]-b[1][2]).forEach(([d],i)=>{
+          const p=find(d.dataset.id)||{};
+          d.style.order=i; d.draggable=false;
+          if((p.span||16)>=30) d.classList.add('wide');
+        });
+      }
+      return;
+    }
     const g=S.gap, W=grid.clientWidth, u=gU(); if(!W) return;
     cs=W/48;
     grid.style.setProperty('--cs',cs+'px'); grid.style.setProperty('--cell',(cs*u)+'px');
@@ -578,6 +614,8 @@ body.vrac #bar,body.vrac #drop{display:none!important}
   }
   // largeur d'une case, en colonnes fines
   function place(d,p){ d.style.setProperty('--span',Math.max(1,Math.min(48,p.span||16))); }
+  let wasNarrow=narrow();
+  window.addEventListener('resize',()=>{ if(narrow()!==wasNarrow){ wasNarrow=narrow(); applyS(); render(); } });
   let lastW=0;
   try{ new ResizeObserver(()=>{ if(grid.clientWidth!==lastW){ lastW=grid.clientWidth; layoutGrid(); } }).observe(grid); }catch(e){}
   try{ document.fonts.ready.then(layoutGrid); }catch(e){}
@@ -1185,6 +1223,50 @@ body.vrac #bar,body.vrac #drop{display:none!important}
     saveS(); renderToc(); document.title=(ev&&t?t+' – ':'')+(S.title||'Portfolio photo sport');
   };
   $('#sub').oninput=e=>{ const ev=curEv(); if(ev) ev.sub=e.target.innerText; else S.sub=e.target.innerText; saveS(); };
+
+  // ---------- projet : un fichier unique pour passer de l'ordinateur au téléphone (et inversement) ----------
+  // format : « PFPROJ1 » + longueur de l'en-tête (4 octets) + en-tête JSON + fichiers photo/vidéo/RAW bout à bout
+  const MAGIC='PFPROJ1';
+  async function saveProject(btn){
+    const label=btn.textContent; btn.textContent='Préparation…';
+    try{
+      const blobs=[]; let off=0;
+      const add=b=>{ const r=[off,b.size,b.type||'']; blobs.push(b); off+=b.size; return r; };
+      const items=photos.map(p=>{ const q=Object.assign({},p); delete q.blob; delete q.raw;
+        if(p.blob) q._b=add(p.blob); if(p.raw) q._r=add(p.raw).concat(p.raw.name||p.name||'original'); return q; });
+      const head=new TextEncoder().encode(JSON.stringify({v:1,settings:Object.assign({},S,{filter:''}),items}));
+      const len=new DataView(new ArrayBuffer(4)); len.setUint32(0,head.length,true);
+      const out=new Blob([MAGIC,len.buffer,head,...blobs],{type:'application/octet-stream'});
+      const d=new Date(), z=n=>String(n).padStart(2,'0');
+      const a=document.createElement('a'); a.href=URL.createObjectURL(out);
+      a.download='portfolio-'+d.getFullYear()+'-'+z(d.getMonth()+1)+'-'+z(d.getDate())+'.pfproj';
+      document.body.appendChild(a); a.click(); a.remove(); setTimeout(()=>URL.revokeObjectURL(a.href),60000);
+    }catch(e){ console.error(e); alert('Impossible de créer le fichier du projet.'); }
+    btn.textContent=label;
+  }
+  async function openProject(f){
+    if(!f) return;
+    try{
+      const mg=new TextDecoder().decode(await f.slice(0,7).arrayBuffer());
+      if(mg!==MAGIC){ alert("Ce fichier n'est pas un projet de portfolio (.pfproj)."); return; }
+      const n=new DataView(await f.slice(7,11).arrayBuffer()).getUint32(0,true), base=11+n;
+      const data=JSON.parse(new TextDecoder().decode(await f.slice(11,base).arrayBuffer()));
+      const nb=(data.items||[]).filter(q=>!NOTMEDIA.includes(q.type)).length;
+      if(!confirm('Ouvrir ce projet ('+nb+' photo'+(nb>1?'s':'')+'/vidéo'+(nb>1?'s':'')+') ?\n\nIl remplace ce qui est actuellement dans l\'éditeur sur cet appareil.')) return;
+      const items=(data.items||[]).map(q=>{
+        const p=Object.assign({},q); delete p._b; delete p._r;
+        if(q._b) p.blob=f.slice(base+q._b[0],base+q._b[0]+q._b[1],q._b[2]);
+        if(q._r) p.raw=new File([f.slice(base+q._r[0],base+q._r[0]+q._r[1])],q._r[3],{type:q._r[2]});
+        return p;
+      });
+      // on copie les fichiers en mémoire avant l'écriture : la base garde ses propres données
+      for(const p of items){ if(p.blob) p.blob=new Blob([await p.blob.arrayBuffer()],{type:p.blob.type}); if(p.raw) p.raw=new File([await p.raw.arrayBuffer()],p.raw.name,{type:p.raw.type}); }
+      await new Promise((ok,ko)=>{ const t=db.transaction('p','readwrite'), o=t.objectStore('p'); o.clear(); items.forEach(p=>o.put(p)); t.oncomplete=ok; t.onerror=()=>ko(t.error); t.onabort=()=>ko(t.error); });
+      try{ localStorage.setItem('pf-settings',JSON.stringify(Object.assign({},data.settings||{},{edit:true}))); }catch(e){}
+      location.hash=''; location.reload();
+    }catch(e){ console.error(e); alert("Impossible d'ouvrir ce projet. Si le fichier est très gros, le téléphone manque peut-être de place ou de mémoire."); }
+  }
+  $('#projfile').onchange=e=>{ const f=e.target.files[0]; e.target.value=''; openProject(f); };
 
   // ---------- export du site (zip prêt à publier) ----------
   const CRC=(()=>{ const t=new Uint32Array(256); for(let n=0;n<256;n++){ let c=n; for(let k=0;k<8;k++) c=c&1?0xEDB88320^(c>>>1):c>>>1; t[n]=c>>>0; } return t; })();
